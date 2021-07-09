@@ -152,7 +152,7 @@ df.drop(columns=['origination_date', 'last_payment_date', 'next_payment_due_date
 
 df = pd.get_dummies(df, columns = ['grade', 'listing_title', 'data_source'], drop_first = True)
 
-df
+df.head()
 
 """**Dataset Continous Variables**
 
@@ -242,23 +242,26 @@ model.add(Dropout(0.2))
 model.add(Dense(7, activation='relu'))
 model.add(Dropout(0.2))
 
-# Output Layer. We will add activation as it is binary classification
-model.add(Dense(1, activation='sigmoid'))
+# Output Layer. 
+model.add(Dense(3, activation='softmax'))
 
 # Compile Model
-model.compile(loss='binary_crossentropy', optimizer='adam')
+model.compile(loss='categorical_crossentropy', optimizer='adam')
+
+y_train_model = pd.get_dummies(y_train)
+y_test_model = pd.get_dummies(y_test)
 
 early_stop = EarlyStopping(monitor='val_loss', mode='min', verbose=1, patience=10)
 
-# Fitting Model
-model.fit(x=X_train, y=y_train, epochs=100, validation_data=(X_test, y_test), batch_size = 256)
+# Model with activation = 'softmax', loss = 'categorical_crossentropy'
+model.fit(x=X_train, y=y_train_model, epochs=50, validation_data=(X_test, y_test_model), batch_size = 256)
 
 # Loss Comparison between training and test
 losses = pd.DataFrame(model.history.history)
 losses.plot()
 
 # Predictions
-predictions = model.predict_classes(X_test)
+predictions = pd.DataFrame(model.predict_classes(X_test))
 
 print(confusion_matrix(y_test, predictions))
 
@@ -266,8 +269,10 @@ print(classification_report(y_test, predictions))
 
 """**Random Forest Model**"""
 
-rfc = RandomForestClassifier(n_estimators=100)
+rfc = RandomForestClassifier(n_estimators=100, max_depth = None)
 rfc.fit(X_train, y_train)
+
+
 
 rfc_pred = rfc.predict(X_test)
 
